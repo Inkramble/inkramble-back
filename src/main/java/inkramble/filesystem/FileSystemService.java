@@ -1,5 +1,7 @@
 package inkramble.filesystem;
 
+import inkramble.utils.FileUtils;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -10,17 +12,17 @@ import java.util.stream.Collectors;
 
 public class FileSystemService {
     public FileNode readDirectory(String dirPath) throws IOException {
-        Path path = Paths.get(dirPath);
-        if (!Files.exists(path)) {
-            throw new IllegalArgumentException("경로가 존재하지 않습니다: " + dirPath);
+            Path path = Paths.get(dirPath);
+            if (!Files.exists(path)) {
+                throw new IllegalArgumentException("경로가 존재하지 않습니다: " + dirPath);
+            }
+            return buildFileNode(path, path);
         }
-        return buildFileNode(path, path);
-    }
 
-    private FileNode buildFileNode(Path path, Path basePath) throws IOException {
-        boolean isDirectory = Files.isDirectory(path);
-        String contentType = isDirectory ? "directory" : Files.probeContentType(path);
-        String relativePath = basePath.relativize(path).toString();
+        private FileNode buildFileNode(Path path, Path basePath) throws IOException {
+            boolean isDirectory = Files.isDirectory(path);
+            String contentType = isDirectory ? "directory" : FileUtils.getExtension(path);
+            String relativePath = basePath.relativize(path).toString();
         List<FileNode> children = List.of();
 
         if (isDirectory) {
