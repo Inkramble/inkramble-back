@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: inkramble-back
+  profiles:
+    active: dev
