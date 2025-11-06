@@ -1,6 +1,6 @@
 package inkramble.utils;
 
-import inkramble.config.TestConstants;
+import inkramble.TestConstants;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
