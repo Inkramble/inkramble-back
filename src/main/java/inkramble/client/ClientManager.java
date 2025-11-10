@@ -19,9 +19,11 @@ public class ClientManager {
 
     public ClientSession getOrCreate(UUID id) {
         return sessions.computeIfAbsent(id, k -> new ClientSession());
+
     }
 
-    // TODO : 나중에 FileSYstem관련 기능으로 옮길 것
+
+    // TODO : 나중에 FileSystem관련 기능으로 옮길 것
     public void updateRootPath(UUID id, String rootPath) {
         ClientSession s = getOrCreate(id);
         s.setRootPath(rootPath);
@@ -29,8 +31,10 @@ public class ClientManager {
         sendEvent(id, "rootPathChanged", rootPath);
     }
 
-    public SseEmitter subscribe(UUID id, long timeoutMillis) {
+    public ClientSession subscribe(UUID id, String rootPath) {
         ClientSession s = getOrCreate(id);
+        s.setRootPath(rootPath);
+
         SseEmitter emitter = new SseEmitter();
         s.addSubscriber(emitter);
 
@@ -41,23 +45,23 @@ public class ClientManager {
         emitter.onCompletion(() -> s.removeSubscriber(emitter));
         emitter.onError((e) -> s.removeSubscriber(emitter));
 
+        SseEmitter.SseEventBuilder evt = SseEmitter.event()
+                .name("connected")
+                .id(id.toString())
+                .data("ok@" + Instant.now());
+
+        //event: connected
+        //id: <UUID>
+        //data: ok@2025-11-07T18:00:00Z
+
         try {
-            SseEmitter.SseEventBuilder evt = SseEmitter.event()
-                    .name("connected")
-                    .id(id.toString())
-                    .data("ok@" + Instant.now());
-
-            //event: connected
-            //id: <UUID>
-            //data: ok@2025-11-07T18:00:00Z
             emitter.send(evt);
-            String rootPath = s.getRootPath();
-            if (rootPath != null) {
-                //TODO : SSE emitter 초기 data send // 또는 처음에는 API로 처리하기
-            }
-        } catch (IOException ignored) {}
 
-        return emitter;
+            //TODO : SSE emitter 초기 data send // 또는 처음에는 API로 처리하기
+        } catch (IOException ignored) {
+        }
+        return s;
+
     }
 
     public void sendEvent(UUID id, String eventName, Object data) {
@@ -73,4 +77,17 @@ public class ClientManager {
         }
     }
 
+    public void unsubscribe(UUID id) {
+        ClientSession s = sessions.get(id);
+        if (s == null) return;
+
+        // 모든 emitter 정리
+        for (SseEmitter emitter : s.getSubscribers()) {
+            try {
+                emitter.complete();   // SSE 스트림 종료
+            } catch (Throwable ignored) {}
+        }
+
+        s.clearSubscribers();
+    }
 }

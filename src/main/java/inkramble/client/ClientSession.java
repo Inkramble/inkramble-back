@@ -17,5 +17,6 @@ public class ClientSession {
     public List<SseEmitter> getSubscribers() { return subscribers; }
     public void addSubscriber(SseEmitter subscriber) { this.subscribers.add(subscriber); }
     public void removeSubscriber(SseEmitter subscriber) { this.subscribers.remove(subscriber); }
+    public void clearSubscribers() { subscribers.clear(); }
 
 }
