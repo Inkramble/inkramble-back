@@ -1,5 +1,6 @@
 package inkramble.client;
 
+import inkramble.filewatch.FileWatchService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -12,8 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ClientManager {
     private final Map<UUID, ClientSession> sessions;
+    private final FileWatchService fileWatchService;
 
-    public ClientManager() {
+    public ClientManager(FileWatchService fileWatchService) {
+        this.fileWatchService = fileWatchService;
         sessions = new ConcurrentHashMap<>();
     }
 
@@ -23,12 +26,16 @@ public class ClientManager {
     }
 
 
-    // TODO : 나중에 FileSystem관련 기능으로 옮길 것
+
     public void updateRootPath(UUID id, String rootPath) {
         ClientSession s = getOrCreate(id);
         s.setRootPath(rootPath);
         // 변경 알림
         sendEvent(id, "rootPathChanged", rootPath);
+        try {
+            fileWatchService.update(id, rootPath, e -> sendEvent(id, "fs.fileChanged", e));
+        } catch (Exception ignored) {
+        }
     }
 
     public ClientSession subscribe(UUID id, String rootPath) {
@@ -55,11 +62,11 @@ public class ClientManager {
         //data: ok@2025-11-07T18:00:00Z
 
         try {
-            emitter.send(evt);
+            fileWatchService.watch(id, rootPath, e -> sendEvent(id, "fileChanged", e));
+        } catch (Exception ignored){
 
-            //TODO : SSE emitter 초기 data send // 또는 처음에는 API로 처리하기
-        } catch (IOException ignored) {
         }
+
         return s;
 
     }
