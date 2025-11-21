@@ -27,8 +27,9 @@ public class FileWatchService {
         watchers = new ConcurrentHashMap<>();
     }
 
-
+    // 새롭게 연결하는 경우
     public void watch(UUID clientId, String rootPath, Consumer<FileChangeEvent> fileChangeEventConsumer) {
+
         unwatch(clientId);
         Path base = Paths.get(rootPath);
         FileWatcher watcher;

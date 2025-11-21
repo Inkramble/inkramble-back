@@ -51,6 +51,16 @@ public class FileWatcher implements Runnable {
         this.thread = new Thread(this);
         this.thread.setDaemon(true);
         this.thread.start();
+        try {
+            FileChangeEvent evt = new FileChangeEvent(
+                    id,
+                    fileSystemService.readDirectory(path),
+                    clock.instant()
+            );
+            fileChangeEventConsumer.accept(evt);
+        } catch (IOException e) {
+            throw new FileWatcherException("File Service Error",e);
+        }
     }
 
     @Override
@@ -68,7 +78,7 @@ public class FileWatcher implements Runnable {
                             clock.instant()
                     );
 
-                    if (kind == ENTRY_CREATE|| kind == ENTRY_MODIFY|| kind == ENTRY_DELETE) {
+                    if (kind == ENTRY_CREATE|| kind == ENTRY_DELETE) { //|| kind == ENTRY_MODIFY
                         fileChangeEventConsumer.accept(evt);
                     }
 
