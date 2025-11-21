@@ -15,7 +15,7 @@ public class ClientController {
         this.clientManager = clientManager;
     }
     @PostMapping("/subscribe")
-    public ClientSession subscribe(@RequestBody ClientSubscribeRequest request) {
+    public SseEmitter subscribe(@RequestBody ClientSubscribeRequest request) {
         return clientManager.subscribe(request.id(), request.rootPath());
     }
 

@@ -38,7 +38,7 @@ public class ClientManager {
         }
     }
 
-    public ClientSession subscribe(UUID id, String rootPath) {
+    public SseEmitter subscribe(UUID id, String rootPath) {
         ClientSession s = getOrCreate(id);
         s.setRootPath(rootPath);
 
@@ -58,6 +58,7 @@ public class ClientManager {
                 .data("ok@" + Instant.now());
 
         //event: connected
+
         //id: <UUID>
         //data: ok@2025-11-07T18:00:00Z
 
@@ -67,7 +68,7 @@ public class ClientManager {
 
         }
 
-        return s;
+        return emitter;
 
     }
 
