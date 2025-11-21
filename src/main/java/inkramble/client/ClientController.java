@@ -15,7 +15,7 @@ public class ClientController {
         this.clientManager = clientManager;
     }
     @PostMapping("/subscribe")
-    public SseEmitter subscribe(@RequestBody ClientSubscribeRequest request) {
+    public ClientSession subscribe(@RequestBody ClientSubscribeRequest request) {
         return clientManager.subscribe(request.id(), request.rootPath());
     }
 
@@ -25,6 +25,11 @@ public class ClientController {
         return ResponseEntity.ok().build();
     }
 
+
+    @GetMapping("/stream/{id}")
+    public SseEmitter stream(@PathVariable UUID id) {
+        return clientManager.stream(id);
+    }
 
 
 }

@@ -38,11 +38,16 @@ public class ClientManager {
         }
     }
 
-    public SseEmitter subscribe(UUID id, String rootPath) {
+    public SseEmitter stream(UUID id) {
+        return sessions.get(id).getSubscribers().getFirst();
+    }
+
+    public ClientSession subscribe(UUID id, String rootPath) {
         ClientSession s = getOrCreate(id);
         s.setRootPath(rootPath);
 
-        SseEmitter emitter = new SseEmitter();
+        SseEmitter emitter = new SseEmitter(0L);
+        s.clearSubscribers();
         s.addSubscriber(emitter);
 
         //브라우저 탭 닫힘
@@ -68,7 +73,7 @@ public class ClientManager {
 
         }
 
-        return emitter;
+        return s;
 
     }
 
