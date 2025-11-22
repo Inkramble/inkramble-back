@@ -26,5 +26,10 @@ public class ClientController {
     }
 
 
+    @GetMapping("/stream/{id}")
+    public SseEmitter stream(@PathVariable UUID id) {
+        return clientManager.stream(id);
+    }
+
 
 }
