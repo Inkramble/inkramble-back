@@ -1,6 +1,7 @@
 package inkramble.filesystem;
 
 import inkramble.utils.FileUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -10,19 +11,24 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class FileSystemService {
-    public FileNode readDirectory(String dirPath) throws IOException {
-            Path path = Paths.get(dirPath);
-            if (!Files.exists(path)) {
-                throw new IllegalArgumentException("경로가 존재하지 않습니다: " + dirPath);
-            }
-            return buildFileNode(path, path);
-        }
+    public FileNode readDirectory(Path dirPath) throws IOException {
 
-        private FileNode buildFileNode(Path path, Path basePath) throws IOException {
-            boolean isDirectory = Files.isDirectory(path);
-            String contentType = isDirectory ? "directory" : FileUtils.getExtension(path);
-            String relativePath = basePath.relativize(path).toString();
+        if (!Files.exists(dirPath)) {
+            throw new IllegalArgumentException("경로가 존재하지 않습니다: " + dirPath);
+        }
+        return buildFileNode(dirPath, dirPath);
+    }
+    public FileNode readDirectory(String dirPath) throws IOException {
+        Path path = Paths.get(dirPath);
+        return readDirectory(path);
+    }
+
+    private FileNode buildFileNode(Path path, Path basePath) throws IOException {
+        boolean isDirectory = Files.isDirectory(path);
+        String contentType = isDirectory ? "directory" : FileUtils.getExtension(path);
+        String relativePath = basePath.relativize(path).toString();
         List<FileNode> children = List.of();
 
         if (isDirectory) {
@@ -30,7 +36,7 @@ public class FileSystemService {
                 children = stream
                         .map(p -> {
                             try {
-                                return buildFileNode(p,basePath);
+                                return buildFileNode(p, basePath);
                             } catch (IOException e) {
                                 throw new UncheckedIOException(e);
                             }

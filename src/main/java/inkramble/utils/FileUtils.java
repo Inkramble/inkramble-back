@@ -8,7 +8,7 @@ public class FileUtils {
         if (fileName == null || fileName.isBlank()) throw new IllegalArgumentException("File Name Error : " + fileName);
 
         int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex > 0 && dotIndex < fileName.length() - 1) {
+        if (dotIndex >= 0 && dotIndex < fileName.length() - 1) {
             return fileName.substring(dotIndex + 1).toLowerCase();
         }
 
