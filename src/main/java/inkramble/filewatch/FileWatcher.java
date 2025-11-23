@@ -56,6 +56,7 @@ public class FileWatcher implements Runnable {
         this.thread.setDaemon(true);
         this.thread.start();
 
+        // fileWatcher 설정 후 초기값 EventEmit
         emitChangeEvent();
     }
 
@@ -86,6 +87,7 @@ public class FileWatcher implements Runnable {
 
     private void registerAll(Path start) throws IOException {
         Files.walkFileTree(start, new SimpleFileVisitor<>() {
+            // start 기준으로 깊이 우선 탐색
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
                     throws IOException {
@@ -100,9 +102,11 @@ public class FileWatcher implements Runnable {
         try {
             while (isRunning) {
                 WatchKey key;
+
                 try {
                     key = watchService.take();
                 } catch (InterruptedException e) {
+                    //인터럽트 발생 - 종료
                     if (!isRunning) break;
                     Thread.currentThread().interrupt();
                     break;
@@ -119,7 +123,7 @@ public class FileWatcher implements Runnable {
                     WatchEvent.Kind<?> kind = event.kind();
 
                     if (kind == OVERFLOW) {
-                        System.out.println("OVERFLOW: 일부 이벤트 손실 발생");
+                        //이벤트 손실
                         continue;
                     }
 
@@ -148,7 +152,8 @@ public class FileWatcher implements Runnable {
 
                 if (!valid) {
                     keyDirectoryMap.remove(key);
-                    if (keyDirectoryMap.isEmpty()) {//FileWatcher 종료
+                    if (keyDirectoryMap.isEmpty()) {
+                        //FileWatcher 종료
                         break;
                     }
                 }
