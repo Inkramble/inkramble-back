@@ -3,11 +3,13 @@ package inkramble.filesystem;
 import inkramble.utils.FileUtils;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,8 +51,58 @@ public class FileSystemService {
                 path.getFileName().toString(),
                 relativePath,
                 isDirectory,
-                contentType != null ? contentType : "unknown",
+                contentType,
                 children
         );
     }
+
+    public String readFile(String pathString) throws IOException {
+        Path path = Paths.get(pathString);
+        return readFile(path);
+    }
+
+    public String readFile(Path path) throws IOException {
+        return Files.readString(path);
+    }
+
+    public void saveFile(String pathString, String data) throws IOException {
+        Path path = Paths.get(pathString);
+        Files.writeString(path, data);
+    }
+
+    public void saveFile(Path path, String data) throws IOException {
+        Files.writeString(path, data);
+    }
+
+    public String makeNewFile(String pathString) throws IOException {
+        //pathString 하위에 새로운 파일 만들기
+        String fileName = "File ";
+        int index = 1;
+        while(true){
+            String tempFileName = pathString + "/" + fileName + index + ".ink";
+            File file = new File(tempFileName);
+            Path path = Paths.get(tempFileName);
+            if (!file.exists()){
+                Files.writeString(path,"", StandardOpenOption.CREATE_NEW);
+                return tempFileName;
+            }
+            index++;
+        }
+    }
+
+    public String makeNewDirectory(String pathString) throws IOException {
+        String dirName = "Directory ";
+        int index = 1;
+
+        while (true) {
+            Path dirPath = Paths.get(pathString, dirName + index);
+
+            if (!Files.exists(dirPath)) {
+                Files.createDirectory(dirPath);
+                return dirPath.toString();
+            }
+            index++;
+        }
+    }
+
 }
