@@ -7,6 +7,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,6 +24,10 @@ public class ClientManager {
     public ClientSession getOrCreate(UUID id) {
         return sessions.computeIfAbsent(id, k -> new ClientSession());
 
+    }
+
+    public Optional<ClientSession> getSession(UUID id) {
+        return Optional.ofNullable(sessions.get(id));
     }
 
 
