@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -64,6 +65,22 @@ public class FileSystemService {
     public String readFile(Path path) throws IOException {
         return Files.readString(path);
     }
+
+    public FileInfo getFileInfo(String path) throws IOException {
+        return getFileInfo(path);
+    }
+
+    public FileInfo getFileInfo(Path path) throws IOException {
+
+        BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
+
+        return new FileInfo(
+                path.getFileName().toString(),
+                attrs.creationTime().toInstant(),
+                attrs.lastModifiedTime().toInstant()
+        );
+    }
+
 
     public void saveFile(String pathString, String data) throws IOException {
         Path path = Paths.get(pathString);

@@ -11,11 +11,19 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
 
+
+
 @RestController
 @RequestMapping("/filesystem")
 public class FileSystemController {
     private final FileSystemService fileSystemService;
     private final ClientManager clientManager;
+    private record FileReadResponse(
+            FileInfo info,
+            String data
+    ) {}
+
+
 
     public FileSystemController(FileSystemService fileSystemService, ClientManager clientManager) {
         this.fileSystemService = fileSystemService;
@@ -23,31 +31,37 @@ public class FileSystemController {
     }
 
     @GetMapping("/read")
-    public ResponseEntity<?> readFile(  @RequestParam UUID id,
-                           @RequestParam String path){
+    public ResponseEntity<?> readFile(@RequestParam UUID id,
+                                      @RequestParam String path) {
 
         Optional<ClientSession> session = clientManager.getSession(id);
-        if(session.isEmpty()){
+
+        if (session.isEmpty()) {
             return ResponseEntity
                     .status(404)
                     .body("No session found for id: " + id);
         }
+
         Path dirPath = Paths.get(session.get().getRootPath(), path);
 
+        FileInfo info;
         String data;
+
         try {
+            info = fileSystemService.getFileInfo(dirPath);
             data = fileSystemService.readFile(dirPath);
         } catch (IOException e) {
             return ResponseEntity
                     .status(400)
                     .body("cannot read file: " + dirPath.toString());
         }
-        return ResponseEntity.ok(data);
+        FileReadResponse response = new FileReadResponse(info, data);
+        return ResponseEntity.ok(response);
 
     }
 
     @PostMapping("/save")
-    public void saveFile(@RequestParam FileSystemRequest request){
+    public void saveFile(@RequestParam FileSystemRequest request) {
 
     }
 }
