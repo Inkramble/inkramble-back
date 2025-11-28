@@ -73,8 +73,6 @@ public class FileSystemController {
         try {
             fileSystemService.saveFile(dirPath, request.data());
         } catch (IOException e) {
-            System.out.println(dirPath.toString());
-            System.out.println(e.getMessage());
             return ResponseEntity
                     .status(400)
                     .body("No session found for id: " + request.id());
