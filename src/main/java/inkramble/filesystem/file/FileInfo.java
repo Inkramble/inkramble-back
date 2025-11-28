@@ -1,4 +1,4 @@
-package inkramble.filesystem;
+package inkramble.filesystem.file;
 
 import java.time.Instant;
 
