@@ -2,6 +2,7 @@ package inkramble.filesystem;
 
 import inkramble.client.ClientManager;
 import inkramble.client.ClientSession;
+import inkramble.filesystem.file.FileInfo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -44,18 +45,15 @@ public class FileSystemController {
 
         Path dirPath = Paths.get(session.get().getRootPath(), path);
 
-        FileInfo info;
-        String data;
+        FileResponse response;
 
         try {
-            info = fileSystemService.getFileInfo(dirPath);
-            data = fileSystemService.readFile(dirPath);
+            response = fileSystemService.readFile(dirPath);
         } catch (IOException e) {
             return ResponseEntity
                     .status(400)
                     .body("cannot read file: " + dirPath.toString());
         }
-        FileReadResponse response = new FileReadResponse(info, data);
         return ResponseEntity.ok(response);
 
     }
