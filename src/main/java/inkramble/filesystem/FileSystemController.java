@@ -17,14 +17,13 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/filesystem")
 public class FileSystemController {
+
     private final FileSystemService fileSystemService;
     private final ClientManager clientManager;
     private record FileReadResponse(
             FileInfo info,
             String data
     ) {}
-
-
 
     public FileSystemController(FileSystemService fileSystemService, ClientManager clientManager) {
         this.fileSystemService = fileSystemService;
@@ -54,12 +53,35 @@ public class FileSystemController {
                     .status(400)
                     .body("cannot read file: " + dirPath.toString());
         }
+
         return ResponseEntity.ok(response);
 
     }
 
     @PostMapping("/save")
-    public void saveFile(@RequestParam FileSystemRequest request) {
+    public ResponseEntity<String> saveFile(@RequestBody FileSystemRequest request) {
+        Optional<ClientSession> session = clientManager.getSession(request.id());
 
+        if (session.isEmpty()) {
+            return ResponseEntity
+                    .status(404)
+                    .body("No session found for id: " + request.id());
+        }
+
+        Path dirPath = Paths.get(session.get().getRootPath(), request.path());
+
+        try {
+            fileSystemService.saveFile(dirPath, request.data());
+        } catch (IOException e) {
+            System.out.println(dirPath.toString());
+            System.out.println(e.getMessage());
+            return ResponseEntity
+                    .status(400)
+                    .body("No session found for id: " + request.id());
+        }
+
+        return ResponseEntity
+                .status(200)
+                .body("Saved file: " + dirPath.toString());
     }
 }
