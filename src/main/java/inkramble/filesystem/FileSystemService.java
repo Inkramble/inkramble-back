@@ -1,6 +1,9 @@
 package inkramble.filesystem;
 
+import inkramble.filesystem.file.FileInfo;
+import inkramble.filesystem.file.InkFileData;
 import inkramble.utils.FileUtils;
+import inkramble.utils.JsonUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -23,6 +26,7 @@ public class FileSystemService {
         }
         return buildFileNode(dirPath, dirPath);
     }
+
     public FileNode readDirectory(String dirPath) throws IOException {
         Path path = Paths.get(dirPath);
         return readDirectory(path);
@@ -57,13 +61,36 @@ public class FileSystemService {
         );
     }
 
-    public String readFile(String pathString) throws IOException {
+    public FileResponse readFile(String pathString) throws IOException {
         Path path = Paths.get(pathString);
         return readFile(path);
     }
 
-    public String readFile(Path path) throws IOException {
-        return Files.readString(path);
+    public FileResponse readFile(Path path) throws IOException {
+        String fileName = path.getFileName().toString();
+        InkFileData data = null;
+        String text;
+        FileInfo fileInfo;
+
+        fileInfo = FileUtils.getFileInfo(path);
+        text = Files.readString(path);
+
+        if (FileUtils.isInkFile(fileName)) {
+            data = JsonUtils.fromJson(text, InkFileData.class);
+            System.out.println(data);
+        } else {
+            data = new InkFileData(
+                    null,
+                    null,
+                    text
+            );
+        }
+
+        return new FileResponse(
+                fileName,
+                fileInfo,
+                data
+        );
     }
 
     public FileInfo getFileInfo(String path) throws IOException {
@@ -95,12 +122,12 @@ public class FileSystemService {
         //pathString 하위에 새로운 파일 만들기
         String fileName = "File ";
         int index = 1;
-        while(true){
+        while (true) {
             String tempFileName = pathString + "/" + fileName + index + ".ink";
             File file = new File(tempFileName);
             Path path = Paths.get(tempFileName);
-            if (!file.exists()){
-                Files.writeString(path,"", StandardOpenOption.CREATE_NEW);
+            if (!file.exists()) {
+                Files.writeString(path, "", StandardOpenOption.CREATE_NEW);
                 return tempFileName;
             }
             index++;
@@ -121,5 +148,6 @@ public class FileSystemService {
             index++;
         }
     }
+
 
 }
