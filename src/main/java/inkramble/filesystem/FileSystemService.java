@@ -1,13 +1,19 @@
 package inkramble.filesystem;
 
+import inkramble.filesystem.file.FileInfo;
+import inkramble.filesystem.file.InkFileData;
 import inkramble.utils.FileUtils;
+import inkramble.utils.JsonUtils;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +26,7 @@ public class FileSystemService {
         }
         return buildFileNode(dirPath, dirPath);
     }
+
     public FileNode readDirectory(String dirPath) throws IOException {
         Path path = Paths.get(dirPath);
         return readDirectory(path);
@@ -49,8 +56,98 @@ public class FileSystemService {
                 path.getFileName().toString(),
                 relativePath,
                 isDirectory,
-                contentType != null ? contentType : "unknown",
+                contentType,
                 children
         );
     }
+
+    public FileResponse readFile(String pathString) throws IOException {
+        Path path = Paths.get(pathString);
+        return readFile(path);
+    }
+
+    public FileResponse readFile(Path path) throws IOException {
+        String fileName = path.getFileName().toString();
+        InkFileData data = null;
+        String text;
+        FileInfo fileInfo;
+
+        fileInfo = FileUtils.getFileInfo(path);
+        text = Files.readString(path);
+
+        if (FileUtils.isInkFile(fileName)) {
+            data = JsonUtils.fromJson(text, InkFileData.class);
+            System.out.println(data);
+        } else {
+            data = new InkFileData(
+                    null,
+                    null,
+                    text
+            );
+        }
+
+        return new FileResponse(
+                fileName,
+                fileInfo,
+                data
+        );
+    }
+
+    public FileInfo getFileInfo(String path) throws IOException {
+        return getFileInfo(path);
+    }
+
+    public FileInfo getFileInfo(Path path) throws IOException {
+
+        BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class);
+
+        return new FileInfo(
+                path.getFileName().toString(),
+                attrs.creationTime().toInstant(),
+                attrs.lastModifiedTime().toInstant()
+        );
+    }
+
+
+    public void saveFile(String pathString, String data) throws IOException {
+        Path path = Paths.get(pathString);
+        Files.writeString(path, data);
+    }
+
+    public void saveFile(Path path, String data) throws IOException {
+        Files.writeString(path, data);
+    }
+
+    public String makeNewFile(String pathString) throws IOException {
+        //pathString 하위에 새로운 파일 만들기
+        String fileName = "File ";
+        int index = 1;
+        while (true) {
+            String tempFileName = pathString + "/" + fileName + index + ".ink";
+            File file = new File(tempFileName);
+            Path path = Paths.get(tempFileName);
+            if (!file.exists()) {
+                Files.writeString(path, "", StandardOpenOption.CREATE_NEW);
+                return tempFileName;
+            }
+            index++;
+        }
+    }
+
+    public String makeNewDirectory(String pathString) throws IOException {
+        String dirName = "Directory ";
+        int index = 1;
+
+        while (true) {
+            Path dirPath = Paths.get(pathString, dirName + index);
+
+            if (!Files.exists(dirPath)) {
+                Files.createDirectory(dirPath);
+                return dirPath.toString();
+            }
+            index++;
+        }
+    }
+
+
 }
