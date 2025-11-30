@@ -15,11 +15,11 @@ public class FileUtils {
         if (fileName == null || fileName.isBlank()) throw new IllegalArgumentException("File Name Error : " + fileName);
 
         int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex >= 0 && dotIndex < fileName.length() - 1) {
-            return fileName.substring(dotIndex + 1).toLowerCase();
+        if (dotIndex == -1 || dotIndex == fileName.length() - 1) {
+            return "FILE";
         }
 
-        throw new IllegalStateException("No extension found: " + fileName);
+        return fileName.substring(dotIndex + 1).toLowerCase();
     }
 
     public static String getExtension(Path path) {
